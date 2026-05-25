@@ -11,7 +11,7 @@ A cross-platform field reporting application built with Expo (React Native). Ena
 
 ```bash
 npm install
-cp .env.example .env   # fill in your Firebase credentials
+cp .env   
 npx expo start
 ```
 
@@ -186,7 +186,6 @@ All credentials are loaded at build time via `app.config.js` → `process.env`, 
 | File | Purpose |
 |---|---|
 | `.env` | Your real values — gitignored |
-| `.env.example` | Committed template with placeholder values |
 | `app.config.js` | Reads `process.env` at build time, writes to `extra` |
 | `src/config/env.js` | Reads `Constants.expoConfig.extra` at runtime |
 
