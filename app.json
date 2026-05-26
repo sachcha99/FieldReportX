@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "FieldReportX",
+    "slug": "fieldreportx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "splash": {
+      "backgroundColor": "#2563EB",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "bundleIdentifier": "com.sachintha.fieldreportx",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "FieldReportX uses the camera to capture inspection, evidence, and verification photos.",
+        "NSPhotoLibraryUsageDescription": "FieldReportX needs access to your photos to attach inspection images and screenshots.",
+        "NSPhotoLibraryAddOnlyUsageDescription": "FieldReportX needs permission to save inspection photos.",
+        "NSLocationWhenInUseUsageDescription": "FieldReportX uses your location to geotag photos, track GPS routes, and verify report locations.",
+        "NSMotionUsageDescription": "FieldReportX uses motion sensors to analyse driving smoothness and patient movement.",
+        "NSMicrophoneUsageDescription": "FieldReportX uses the microphone to record audio evidence and witness statements."
+      }
+    },
+    "android": {
+      "package": "com.fieldreportx.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow FieldReportX to access your camera to capture inspection and evidence photos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow FieldReportX to access your photos for evidence and screenshots.",
+          "cameraPermission": "Allow FieldReportX to access your camera."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow FieldReportX to access your location for GPS tagging and route tracking."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2563EB",
+          "sounds": []
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
