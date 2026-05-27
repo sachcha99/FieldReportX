@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "487234449730",
+    "project_id": "field-report-x",
+    "storage_bucket": "field-report-x.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:487234449730:android:2003d425fdf35dd3c518db",
+        "android_client_info": {
+          "package_name": "com.fieldreportx.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTzB3Ck1DjjdDlVe3vsqeU0KxPW2_t5E0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
