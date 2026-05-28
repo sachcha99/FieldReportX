@@ -250,6 +250,8 @@ function buildGenericHtml(report) {
   ${report.gpsLocation ? `<div><strong>GPS Location</strong><br/>${esc(formatCoords(report.gpsLocation))}</div>` : ''}
   ${metaRows}
   ${report.checksum ? `<div><strong>Report Checksum</strong><br/><code style="font-size:11px;">${esc(report.checksum)}</code></div>` : ''}
+  ${report.appVersion ? `<div><strong>App Version</strong><br/>${esc(report.appVersion)}</div>` : ''}
+  ${report.deviceIdHash ? `<div><strong>Device ID Hash</strong><br/><code style="font-size:11px;">${esc(report.deviceIdHash)}</code></div>` : ''}
   <div><strong>Status</strong><br/>${esc(report.status)}</div>
 </div>
 
@@ -294,6 +296,8 @@ export async function generateGenericReportPdf(report) {
     '</body>',
     `<p style="margin-top:8px; color:#9ca3af; font-size:10px;">
        Generated at: ${formatCoords(currentLocation?.data)} | Battery: ${battery?.percent ?? '?'}%
+       ${report.appVersion ? ` | App v${esc(report.appVersion)}` : ''}
+       ${report.deviceIdHash ? ` | Device: ${esc(report.deviceIdHash)}` : ''}
      </p></body>`
   );
   const { uri } = await Print.printToFileAsync({ html: enrichedHtml, base64: false });

@@ -1,20 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Zap, Battery, BatteryCharging } from 'lucide-react-native';
-import { getBatteryInfo, subscribeBatteryLevel } from '../services/batteryService';
+import { useBatteryLevel, useBatteryState, useLowPowerMode, BatteryState } from 'expo-battery';
 
 export default function BatteryIndicator({ style }) {
-  const [info, setInfo] = useState({ percent: null, isCharging: false, isLowPower: false });
+  const level = useBatteryLevel();
+  const state = useBatteryState();
+  const isLowPower = useLowPowerMode();
 
-  useEffect(() => {
-    getBatteryInfo().then(setInfo);
-    const sub = subscribeBatteryLevel((percent) =>
-      setInfo((prev) => ({ ...prev, percent }))
+  const percent = (level >= 0 && level <= 1) ? Math.round(level * 100) : null;
+  const isCharging = state === BatteryState.CHARGING;
+  const info = { percent, isCharging, isLowPower };
+
+  if (info.percent === null) {
+    return (
+      <View style={[styles.row, style]}>
+        <Battery size={14} color="#9ca3af" strokeWidth={2} />
+        <Text style={[styles.label, { color: '#9ca3af' }]}>—</Text>
+      </View>
     );
-    return () => sub?.remove?.();
-  }, []);
-
-  if (info.percent === null) return null;
+  }
 
   const color =
     info.isCharging ? '#10b981' :

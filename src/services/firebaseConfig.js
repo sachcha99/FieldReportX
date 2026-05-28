@@ -18,11 +18,15 @@ export function initFirebase() {
   try {
     if (getApps().length > 0) {
       app = getApps()[0];
-      // getAuth returns the already-created auth instance for this app
-      auth = getAuth(app);
+      try {
+        auth = getAuth(app);
+      } catch {
+        auth = initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        });
+      }
     } else {
       app = initializeApp(ENV.firebase);
-      // Use React Native persistence so auth state survives app restarts
       auth = initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage),
       });

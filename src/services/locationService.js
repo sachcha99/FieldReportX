@@ -4,12 +4,16 @@ let cachedPermission = null;
 
 export async function requestLocationPermission() {
   if (cachedPermission === 'granted') return { ok: true };
-  const { status } = await Location.requestForegroundPermissionsAsync();
-  cachedPermission = status;
-  if (status !== 'granted') {
-    return { ok: false, error: 'Location permission denied' };
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    cachedPermission = status;
+    if (status !== 'granted') {
+      return { ok: false, error: 'Location permission denied' };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
-  return { ok: true };
 }
 
 export async function getCurrentLocation() {
