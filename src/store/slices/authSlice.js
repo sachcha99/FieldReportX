@@ -1,7 +1,22 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  signInEmail, registerEmail, signInAnon, logout,
+  signInEmail, registerEmail, logout,
 } from '../../services/authService';
+
+const GUEST_UID_KEY = 'fieldreportx_guest_uid';
+
+async function getOrCreateGuestUid() {
+  try {
+    const existing = await AsyncStorage.getItem(GUEST_UID_KEY);
+    if (existing) return existing;
+    const newId = `guest_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    await AsyncStorage.setItem(GUEST_UID_KEY, newId);
+    return newId;
+  } catch {
+    return `guest_${Date.now()}`;
+  }
+}
 
 function friendlyAuthError(msg = '') {
   if (msg.includes('configuration-not-found')) {
@@ -50,18 +65,12 @@ export const registerWithEmail = createAsyncThunk(
 
 export const loginAsGuest = createAsyncThunk(
   'auth/loginAsGuest',
-  async (displayName, { rejectWithValue }) => {
-    try {
-      const user = await signInAnon();
-      if (user) {
-        return { uid: user.uid, email: null, displayName: displayName || 'Guest', isAnonymous: true };
-      }
-      // Firebase not configured — local guest fallback
-      return { uid: `guest_${Date.now()}`, email: null, displayName: displayName || 'Guest', isAnonymous: true };
-    } catch (err) {
-      // Always allow guest login even without Firebase
-      return { uid: `guest_${Date.now()}`, email: null, displayName: displayName || 'Guest', isAnonymous: true };
-    }
+  async (displayName) => {
+    // Guest mode is local-only. We never use Firebase anonymous auth because
+    // signInAnonymously creates a new UID after every sign-out, which would
+    // break report persistence and cause reports to appear/disappear unexpectedly.
+    const stableUid = await getOrCreateGuestUid();
+    return { uid: stableUid, email: null, displayName: displayName || 'Guest', isAnonymous: true };
   }
 );
 
