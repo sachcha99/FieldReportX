@@ -150,11 +150,11 @@ export default function RegisterScreen({ navigation }) {
                 : <Text style={styles.primaryBtnText}>Create Account</Text>}
             </TouchableOpacity>
 
-            <View style={[styles.noteBox, { backgroundColor: lightColors.surface }]}>
+            {/* <View style={[styles.noteBox, { backgroundColor: lightColors.surface }]}>
               <Text style={styles.noteText}>
                 If Firebase is not configured, accounts won't sync to the cloud. Use Guest mode to work fully offline.
               </Text>
-            </View>
+            </View> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

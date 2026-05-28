@@ -1,28 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  SafeAreaView, ScrollView, Alert,
+  SafeAreaView, ScrollView, Alert, Clipboard,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { User, Mail, LogOut, Shield, Cloud, Database, Bell } from 'lucide-react-native';
+import { User, Mail, LogOut, Shield, Cloud, Database, Bell, Radio } from 'lucide-react-native';
 import { selectCurrentUser, logoutUser } from '../store/slices/authSlice';
 import { selectAllRentalReports } from '../store/slices/rentalsSlice';
 import { selectAllReports } from '../store/slices/reportsSlice';
 import { isFirebaseConfigured } from '../services/firebaseConfig';
 import { lightColors, spacing, radius } from '../theme/tokens';
-import { scheduleReportReminder, cancelAllNotifications } from '../services/notificationService';
+import {
+  scheduleReportReminder, cancelAllNotifications,
+  registerForRemoteNotifications, simulateRemoteNotification,
+} from '../services/notificationService';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
-  const rentalReports = useSelector(selectAllRentalReports);
-  const genericReports = useSelector(selectAllReports);
+  const uid = user?.uid;
+  const allRentalReports = useSelector(selectAllRentalReports);
+  const allGenericReports = useSelector(selectAllReports);
+  const rentalReports = uid ? allRentalReports.filter((r) => r.userId === uid) : allRentalReports;
+  const genericReports = uid ? allGenericReports.filter((r) => r.userId === uid) : allGenericReports;
   const totalReports = rentalReports.length + genericReports.length;
   const completedReports = [
     ...rentalReports, ...genericReports,
   ].filter((r) => r.status === 'completed').length;
 
   const firebaseReady = isFirebaseConfigured();
+  const [pushToken, setPushToken] = useState(null);
+
+  useEffect(() => {
+    registerForRemoteNotifications().then(setPushToken).catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -41,6 +52,15 @@ export default function ProfileScreen() {
       Alert.alert('Notification Scheduled', 'You will receive a test notification in 5 seconds.');
     } catch {
       Alert.alert('Error', 'Could not schedule notification. Check permissions.');
+    }
+  };
+
+  const handleTestRemoteNotification = async () => {
+    try {
+      await simulateRemoteNotification('new_template', { name: 'Building Site Audit' });
+      Alert.alert('Remote Notification Sent', 'Simulated a "New Template Available" remote notification.');
+    } catch {
+      Alert.alert('Error', 'Could not send remote notification.');
     }
   };
 
@@ -118,14 +138,24 @@ export default function ProfileScreen() {
               valueColor={lightColors.textSecondary}
             />
           )}
+          {/* <InfoRow
+            Icon={Radio}
+            label="Push Token"
+            value={pushToken ? pushToken.substring(0, 28) + '…' : 'Registering…'}
+            valueColor={pushToken ? '#10b981' : lightColors.textSecondary}
+          /> */}
         </View>
 
         {/* Actions */}
-        <Text style={styles.sectionTitle}>Actions</Text>
+        {/* <Text style={styles.sectionTitle}>Actions</Text>
         <View style={[styles.infoCard, { backgroundColor: lightColors.surface }]}>
           <TouchableOpacity style={styles.actionRow} onPress={handleTestNotification}>
             <Bell size={18} color={lightColors.primary} strokeWidth={2} />
             <Text style={styles.actionText}>Test Notification</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionRow} onPress={handleTestRemoteNotification}>
+            <Radio size={18} color="#8B5CF6" strokeWidth={2} />
+            <Text style={styles.actionText}>Test Remote Notification</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionRow}
@@ -137,7 +167,7 @@ export default function ProfileScreen() {
             <Bell size={18} color={lightColors.textSecondary} strokeWidth={2} />
             <Text style={styles.actionText}>Clear All Notifications</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={handleLogout}>
