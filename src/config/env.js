@@ -6,7 +6,7 @@ import Constants from 'expo-constants';
 function getExtra() {
   return (
     Constants.expoConfig?.extra ??
-    Constants.manifest2?.extra ??
+    Constants.manifest2?.extra?.expoClient?.extra ??
     Constants.manifest?.extra ??
     {}
   );
@@ -19,6 +19,7 @@ if (__DEV__) {
     console.log('[ENV] expoConfig.extra:', JSON.stringify(Constants.expoConfig?.extra ?? null));
     console.log('[ENV] FIREBASE_API_KEY present:', Boolean(e.FIREBASE_API_KEY));
     console.log('[ENV] FIREBASE_PROJECT_ID present:', Boolean(e.FIREBASE_PROJECT_ID));
+    console.log('[ENV] HF_API_TOKEN present:', Boolean(e.HF_API_TOKEN));
   }, 2000);
 }
 
@@ -33,6 +34,9 @@ export const ENV = {
       messagingSenderId: e.FIREBASE_MESSAGING_SENDER_ID || '',
       appId: e.FIREBASE_APP_ID || '',
     };
+  },
+  get hfApiToken() {
+    return getExtra().HF_API_TOKEN || null;
   },
   get admob() {
     const e = getExtra();

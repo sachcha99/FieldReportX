@@ -13,6 +13,7 @@ export const ENV = {
     iosAppId: 'ca-app-pub-3940256099942544~1458002511',
     bannerUnitId: 'ca-app-pub-3940256099942544/6300978111',
   },
+  whisperApiKey: null,
 };
 
 export const isFirebaseConfigured = () => true;

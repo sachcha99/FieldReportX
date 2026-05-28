@@ -49,3 +49,16 @@ export function computeAngleDelta(samples, axis = 'x', intervalMs = 200) {
   const totalDeg = (totalRad * intervalMs) / 1000 * (180 / Math.PI);
   return Math.round(totalDeg * 10) / 10;
 }
+
+// Compute pitch and roll tilt angles (degrees) from a single accelerometer sample
+// Pitch: forward/back tilt; Roll: left/right tilt
+export function computeTiltAngles(sample) {
+  if (!sample) return { pitch: 0, roll: 0 };
+  const { x, y, z } = sample;
+  const pitch = Math.atan2(-x, Math.sqrt(y * y + z * z)) * (180 / Math.PI);
+  const roll = Math.atan2(y, z) * (180 / Math.PI);
+  return {
+    pitch: Math.round(pitch * 10) / 10,
+    roll: Math.round(roll * 10) / 10,
+  };
+}
