@@ -1,3 +1,10 @@
+jest.mock('../src/services/firestoreService', () => ({
+  upsertReport: jest.fn().mockResolvedValue(undefined),
+  batchSyncReports: jest.fn().mockResolvedValue({ synced: 0, failed: 0 }),
+  upsertRental: jest.fn().mockResolvedValue(undefined),
+  batchSyncRentals: jest.fn().mockResolvedValue({ synced: 0, failed: 0 }),
+}));
+
 import { configureStore } from '@reduxjs/toolkit';
 import reportsReducer, {
   createReport,
