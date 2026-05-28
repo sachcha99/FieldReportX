@@ -4,8 +4,8 @@ import {
   TextInput, Alert, FlatList, Image, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { Camera, FileText, CheckCircle, Circle, X, Check, Mic, MicOff, Play, Scale } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Camera, FileText, CheckCircle, Circle, X, Check, Mic, MicOff, Play, Scale, BarChart2 } from 'lucide-react-native';
+import { launchCamera, launchLibrary } from '../services/cameraService';
 import * as DocumentPicker from 'expo-document-picker';
 import {
   selectReportById, selectReportProgress,
@@ -15,6 +15,7 @@ import {
 } from '../store/slices/reportsSlice';
 import { startRecording, stopRecording, playAudio, isRecording } from '../services/audioService';
 import { lightColors, spacing, radius } from '../theme/tokens';
+import SpeechToTextButton from '../components/SpeechToTextButton';
 
 const ACCENT = '#06B6D4';
 
@@ -75,21 +76,21 @@ export default function LegalDetailScreen({ route, navigation }) {
   };
 
   const handleAddPhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
-    if (!result.canceled) {
+    const asset = await launchCamera({ quality: 0.85 });
+    if (asset) {
       dispatch(addPhotoToSection({
         reportId, sectionId: section.id,
-        photo: { uri: result.assets[0].uri, timestamp: new Date().toISOString(), type: 'photo' },
+        photo: { uri: asset.uri, timestamp: new Date().toISOString(), type: 'photo' },
       }));
     }
   };
 
   const handlePickScreenshot = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.85, allowsMultipleSelection: false });
-    if (!result.canceled) {
+    const asset = await launchLibrary({ quality: 0.85, allowsMultipleSelection: false });
+    if (asset) {
       dispatch(addPhotoToSection({
         reportId, sectionId: section.id,
-        photo: { uri: result.assets[0].uri, timestamp: new Date().toISOString(), type: 'screenshot' },
+        photo: { uri: asset.uri, timestamp: new Date().toISOString(), type: 'screenshot' },
       }));
     }
   };
@@ -248,6 +249,20 @@ export default function LegalDetailScreen({ route, navigation }) {
             placeholderTextColor={lightColors.textSecondary}
             multiline
           />
+          <SpeechToTextButton
+            accentColor={ACCENT}
+            style={{ marginTop: spacing.sm }}
+            onTranscript={(text, uri) => {
+              const current = section.conditionNotes || '';
+              dispatch(updateSectionNotes({ reportId, sectionId: section.id, notes: current ? `${current}\n${text}` : text }));
+              if (uri) {
+                dispatch(addAudioNote({
+                  reportId, sectionId: section.id,
+                  audio: { uri, timestamp: new Date().toISOString(), durationEstimate: 'Transcribed', transcript: text },
+                }));
+              }
+            }}
+          />
 
           <Text style={styles.notesLabel}>Evidence Attachments ({section.photos?.length || 0})</Text>
           {section.photos?.length > 0 && (
@@ -310,6 +325,11 @@ export default function LegalDetailScreen({ route, navigation }) {
             </View>
           )}
         </View>
+
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#374151' }]} onPress={() => navigation.navigate('ReportCharts', { reportId, reportType: 'generic' })}>
+          <BarChart2 size={18} color="#fff" strokeWidth={2} />
+          <Text style={styles.actionBtnText}>View Charts</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: ACCENT }]} onPress={() => navigation.navigate('GenericReportPdf', { reportId })}>
           <FileText size={18} color="#fff" strokeWidth={2} />

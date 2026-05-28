@@ -4,7 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Camera, FileText, CheckCircle, Circle, X, Check } from 'lucide-react-native';
 import { selectRentalReportById, selectReportProgress, updateSectionNotes, toggleChecklistItem, markSectionComplete, addPhotoToSection, removePhotoFromSection, markReportComplete } from '../store/slices/rentalsSlice';
 import { lightColors, spacing, radius } from '../theme/tokens';
-import * as ImagePicker from 'expo-image-picker';
+import { launchCamera } from '../services/cameraService';
+import SpeechToTextButton from '../components/SpeechToTextButton';
 
 export default function RentalDetailScreen({ route, navigation }) {
   const { reportId } = route.params;
@@ -16,15 +17,12 @@ export default function RentalDetailScreen({ route, navigation }) {
   if (!report) return <SafeAreaView style={styles.container}><Text>Report not found</Text></SafeAreaView>;
 
   const handleAddPhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
-    if (!result.canceled) {
+    const asset = await launchCamera({ quality: 0.7 });
+    if (asset) {
       dispatch(addPhotoToSection({
         reportId,
         sectionId: report.sections[activeSection].id,
-        photo: {
-          uri: result.assets[0].uri,
-          timestamp: new Date().toISOString(),
-        },
+        photo: { uri: asset.uri, timestamp: new Date().toISOString() },
       }));
     }
   };
@@ -97,6 +95,14 @@ export default function RentalDetailScreen({ route, navigation }) {
             style={styles.notesInput}
             placeholderTextColor={lightColors.textSecondary}
             multiline
+          />
+          <SpeechToTextButton
+            accentColor={lightColors.primary}
+            style={{ marginTop: spacing.sm }}
+            onTranscript={(text) => {
+              const current = section.conditionNotes || '';
+              dispatch(updateSectionNotes({ reportId, sectionId: section.id, notes: current ? `${current}\n${text}` : text }));
+            }}
           />
 
           <Text style={styles.photosLabel}>Photos ({section.photos?.length || 0})</Text>

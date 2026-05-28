@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
-  StatusBar, SafeAreaView,
+  StatusBar, SafeAreaView, Alert,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
@@ -23,6 +23,7 @@ import {
   syncReport, batchSyncAllReports, TYPE_META,
 } from '../store/slices/reportsSlice';
 import { batchSyncAllRentals } from '../store/slices/rentalsSlice';
+import { selectCurrentUser } from '../store/slices/authSlice';
 import { lightColors, spacing, radius } from '../theme/tokens';
 
 const TYPE_ICONS = {
@@ -39,6 +40,8 @@ const TYPE_DETAIL_SCREENS = {
   driving: 'DrivingDetail',
   legal: 'LegalDetail',
   service: 'ServiceDetail',
+  trades: 'TradesDetail',
+  rehab: 'RehabDetail',
 };
 
 function getDetailScreen(type) {
@@ -46,8 +49,12 @@ function getDetailScreen(type) {
 }
 
 export default function HomeScreen({ navigation }) {
-  const rentalReports = useSelector(selectAllRentalReports);
-  const genericReports = useSelector(selectAllReports);
+  const currentUser = useSelector(selectCurrentUser);
+  const uid = currentUser?.uid;
+  const allRentalReports = useSelector(selectAllRentalReports);
+  const allGenericReports = useSelector(selectAllReports);
+  const rentalReports = uid ? allRentalReports.filter((r) => r.userId === uid) : allRentalReports;
+  const genericReports = uid ? allGenericReports.filter((r) => r.userId === uid) : allGenericReports;
   const dispatch = useDispatch();
   const [filter, setFilter] = useState('all');
 
@@ -166,11 +173,24 @@ export default function HomeScreen({ navigation }) {
                 }
               }}
               onDelete={() => {
-                if (item._storeType === 'rental') {
-                  dispatch(deleteRentalReport(item.id));
-                } else {
-                  dispatch(deleteReport(item.id));
-                }
+                Alert.alert(
+                  'Delete Report',
+                  'Are you sure you want to delete this report? This cannot be undone.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: () => {
+                        if (item._storeType === 'rental') {
+                          dispatch(deleteRentalReport(item.id));
+                        } else {
+                          dispatch(deleteReport(item.id));
+                        }
+                      },
+                    },
+                  ]
+                );
               }}
               onSync={() => {
                 if (item._storeType === 'rental') {
