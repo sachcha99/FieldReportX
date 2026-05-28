@@ -4,11 +4,11 @@ import {
   TouchableOpacity, Alert, ActivityIndicator, SafeAreaView,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { MapPin, FileText, User, Tag } from 'lucide-react-native';
+import { MapPin, FileText, User, Tag, RefreshCw } from 'lucide-react-native';
 import { createReport, syncReport } from '../store/slices/reportsSlice';
 import { selectCurrentUser } from '../store/slices/authSlice';
 import { getCurrentLocation } from '../services/locationService';
-import { scheduleReportReminder } from '../services/notificationService';
+import { scheduleReportReminder, scheduleFollowUpReminder } from '../services/notificationService';
 import { lightColors, spacing, radius } from '../theme/tokens';
 
 const TYPE_CONFIG = {
@@ -86,6 +86,7 @@ export default function CreateReportScreen({ route, navigation }) {
   const [extraFields, setExtraFields] = useState({});
   const [gpsLocation, setGpsLocation] = useState(null);
   const [loadingGps, setLoadingGps] = useState(true);
+  const [recurring, setRecurring] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -114,7 +115,7 @@ export default function CreateReportScreen({ route, navigation }) {
         title: title.trim(),
         createdBy: createdBy.trim(),
         userId: currentUser?.uid || null,
-        metadata: extraFields,
+        metadata: { ...extraFields, recurring },
         gpsLocation,
       })
     );
@@ -123,6 +124,9 @@ export default function CreateReportScreen({ route, navigation }) {
     dispatch(syncReport(action.payload.id));
 
     scheduleReportReminder(title.trim(), 3600).catch(() => {});
+    if (recurring) {
+      scheduleFollowUpReminder(title.trim(), 7).catch(() => {});
+    }
 
     navigation.goBack();
   };
@@ -188,6 +192,21 @@ export default function CreateReportScreen({ route, navigation }) {
           </View>
         ))}
 
+        <TouchableOpacity
+          style={[styles.recurringRow, recurring && { borderColor: config.color, backgroundColor: config.color + '12' }]}
+          onPress={() => setRecurring((v) => !v)}
+          activeOpacity={0.7}
+        >
+          <RefreshCw size={16} color={recurring ? config.color : lightColors.textSecondary} strokeWidth={2} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.recurringLabel, recurring && { color: config.color }]}>Recurring Report</Text>
+            <Text style={styles.recurringHint}>Schedule a 7-day follow-up reminder</Text>
+          </View>
+          <View style={[styles.toggle, { backgroundColor: recurring ? config.color : lightColors.border }]}>
+            <View style={[styles.toggleThumb, { transform: [{ translateX: recurring ? 18 : 2 }] }]} />
+          </View>
+        </TouchableOpacity>
+
         <View style={[styles.gpsBox, { backgroundColor: gpsLocation ? '#d1fae5' : '#fef3c7' }]}>
           <View style={styles.gpsRow}>
             <MapPin size={16} color={gpsLocation ? '#065f46' : '#92400e'} strokeWidth={2.5} />
@@ -240,6 +259,16 @@ const styles = StyleSheet.create({
     padding: spacing.md, fontSize: 15, color: lightColors.textPrimary, minHeight: 48,
     backgroundColor: lightColors.surface,
   },
+  recurringRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    padding: spacing.md, borderRadius: radius.md, borderWidth: 1,
+    borderColor: lightColors.border, backgroundColor: lightColors.surface,
+    marginBottom: spacing.md,
+  },
+  recurringLabel: { fontSize: 14, fontWeight: '600', color: lightColors.textPrimary },
+  recurringHint: { fontSize: 12, color: lightColors.textSecondary, marginTop: 2 },
+  toggle: { width: 40, height: 22, borderRadius: 11, justifyContent: 'center' },
+  toggleThumb: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#fff', position: 'absolute' },
   gpsBox: { padding: spacing.md, borderRadius: radius.md, marginBottom: spacing.lg },
   gpsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
   gpsLabel: { fontWeight: '600', fontSize: 13 },

@@ -5,9 +5,11 @@ import {
 } from 'react-native';
 import {
   Home, Car, Heart, Wrench, Scale, Truck, FileText,
-  Camera, Mic, MapPin, Activity, ChevronRight,
+  Camera, Mic, MapPin, Activity, ChevronRight, Plus,
 } from 'lucide-react-native';
+import { useSelector } from 'react-redux';
 import { lightColors, spacing, radius } from '../theme/tokens';
+import { selectCustomTemplates } from '../store/slices/templatesSlice';
 
 const TEMPLATES = [
   {
@@ -84,6 +86,8 @@ const TEMPLATES = [
 ];
 
 export default function TemplateLibraryScreen({ navigation }) {
+  const customTemplates = useSelector(selectCustomTemplates);
+
   const handleSelect = (template) => {
     if (template.isRental) {
       navigation.navigate('HomeStack', { screen: 'CreateRental' });
@@ -98,8 +102,19 @@ export default function TemplateLibraryScreen({ navigation }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: lightColors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>Report Templates</Text>
-        <Text style={styles.subtitle}>Choose a template to start a new report</Text>
+        <View style={styles.headingRow}>
+          <View>
+            <Text style={styles.heading}>Report Templates</Text>
+            <Text style={styles.subtitle}>Choose a template to start a new report</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.builderBtn}
+            onPress={() => navigation.navigate('TemplateBuilder')}
+          >
+            <Plus size={16} color="#fff" strokeWidth={2.5} />
+            <Text style={styles.builderBtnText}>Builder</Text>
+          </TouchableOpacity>
+        </View>
 
         {TEMPLATES.map((template) => (
           <TouchableOpacity
@@ -129,6 +144,31 @@ export default function TemplateLibraryScreen({ navigation }) {
             </View>
           </TouchableOpacity>
         ))}
+
+        {customTemplates.length > 0 && (
+          <>
+            <Text style={styles.customHeading}>My Custom Templates</Text>
+            {customTemplates.map((tmpl) => (
+              <TouchableOpacity
+                key={tmpl.id}
+                style={[styles.card, { borderLeftColor: tmpl.color, borderLeftWidth: 4 }]}
+                onPress={() => navigation.navigate('HomeStack', { screen: 'CreateReport', params: { reportType: 'general', customTemplateId: tmpl.id } })}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconBox, { backgroundColor: tmpl.color }]}>
+                    <FileText size={26} color="#fff" strokeWidth={2} />
+                  </View>
+                  <View style={styles.cardTitleArea}>
+                    <Text style={styles.cardTitle}>{tmpl.name}</Text>
+                    <Text style={styles.cardDesc}>{tmpl.category} · {tmpl.sections?.length} sections</Text>
+                  </View>
+                  <ChevronRight size={20} color={lightColors.textSecondary} strokeWidth={2} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -137,8 +177,16 @@ export default function TemplateLibraryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: spacing.md, paddingBottom: spacing.xl },
+  headingRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.lg },
   heading: { fontSize: 24, fontWeight: '700', color: lightColors.textPrimary, marginBottom: spacing.xs },
-  subtitle: { fontSize: 13, color: lightColors.textSecondary, marginBottom: spacing.lg },
+  subtitle: { fontSize: 13, color: lightColors.textSecondary },
+  builderBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4,
+    backgroundColor: '#6366F1', paddingVertical: spacing.xs, paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+  },
+  builderBtnText: { color: '#fff', fontWeight: '600', fontSize: 12 },
+  customHeading: { fontSize: 14, fontWeight: '700', color: lightColors.textSecondary, marginBottom: spacing.sm, marginTop: spacing.md },
 
   card: {
     backgroundColor: lightColors.surface,

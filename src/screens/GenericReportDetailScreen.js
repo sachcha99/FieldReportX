@@ -4,13 +4,15 @@ import {
   TextInput, Alert, FlatList, Image, SafeAreaView,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { Camera, FileText, CheckCircle, Circle, X, Check, Star } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Camera, FileText, CheckCircle, Circle, X, Check, Star, Pen, BarChart2 } from 'lucide-react-native';
+import { launchCamera, launchLibrary } from '../services/cameraService';
+import SpeechToTextButton from '../components/SpeechToTextButton';
+import PhotoAnnotationModal from '../components/PhotoAnnotationModal';
 import {
   selectReportById, selectReportProgress, selectOverallScore,
   updateSectionNotes, toggleChecklistItem, markSectionComplete,
   addPhotoToSection, removePhotoFromSection, markReportComplete,
-  setReportPdfUri, setSectionScore, TYPE_META,
+  setReportPdfUri, setSectionScore, savePhotoAnnotations, TYPE_META,
 } from '../store/slices/reportsSlice';
 import { lightColors, spacing, radius } from '../theme/tokens';
 
@@ -29,6 +31,7 @@ export default function GenericReportDetailScreen({ route, navigation }) {
   const progress = useSelector(selectReportProgress(reportId));
   const overallScore = useSelector(selectOverallScore(reportId));
   const [activeSection, setActiveSection] = useState(0);
+  const [annotatingPhoto, setAnnotatingPhoto] = useState(null); // { photoIndex, uri }
 
   if (!report) {
     return (
@@ -44,33 +47,38 @@ export default function GenericReportDetailScreen({ route, navigation }) {
   const allComplete = completedCount === report.sections.length;
 
   const handleAddPhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({ quality: 0.7 });
-    if (!result.canceled) {
-      dispatch(
-        addPhotoToSection({
-          reportId,
-          sectionId: section.id,
-          photo: { uri: result.assets[0].uri, timestamp: new Date().toISOString() },
-        })
-      );
+    const asset = await launchCamera({ quality: 0.7 });
+    if (asset) {
+      dispatch(addPhotoToSection({
+        reportId, sectionId: section.id,
+        photo: { uri: asset.uri, timestamp: new Date().toISOString() },
+      }));
     }
   };
 
   const handlePickPhoto = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
-    if (!result.canceled) {
-      dispatch(
-        addPhotoToSection({
-          reportId,
-          sectionId: section.id,
-          photo: { uri: result.assets[0].uri, timestamp: new Date().toISOString(), fromLibrary: true },
-        })
-      );
+    const asset = await launchLibrary({ quality: 0.7 });
+    if (asset) {
+      dispatch(addPhotoToSection({
+        reportId, sectionId: section.id,
+        photo: { uri: asset.uri, timestamp: new Date().toISOString(), fromLibrary: true },
+      }));
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: lightColors.background }]}>
+      <PhotoAnnotationModal
+        visible={annotatingPhoto !== null}
+        photoUri={annotatingPhoto?.uri}
+        onClose={() => setAnnotatingPhoto(null)}
+        onSave={(annotations) => {
+          if (annotatingPhoto !== null) {
+            dispatch(savePhotoAnnotations({ reportId, sectionId: section.id, photoIndex: annotatingPhoto.photoIndex, annotations }));
+          }
+          setAnnotatingPhoto(null);
+        }}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
         {/* Header */}
@@ -187,6 +195,14 @@ export default function GenericReportDetailScreen({ route, navigation }) {
             placeholderTextColor={lightColors.textSecondary}
             multiline
           />
+          <SpeechToTextButton
+            accentColor={meta.color || '#2563EB'}
+            style={{ marginTop: spacing.sm }}
+            onTranscript={(text) => {
+              const current = section.conditionNotes || '';
+              dispatch(updateSectionNotes({ reportId, sectionId: section.id, notes: current ? `${current}\n${text}` : text }));
+            }}
+          />
 
           {/* Photos */}
           <Text style={styles.notesLabel}>Photos ({section.photos?.length || 0})</Text>
@@ -198,6 +214,17 @@ export default function GenericReportDetailScreen({ route, navigation }) {
               renderItem={({ item, index }) => (
                 <View style={styles.photoWrap}>
                   <Image source={{ uri: item.uri }} style={styles.photo} />
+                  {item.annotations?.length > 0 && (
+                    <View style={styles.annotationBadge}>
+                      <Text style={styles.annotationBadgeText}>{item.annotations.length}</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.annotateBtn}
+                    onPress={() => setAnnotatingPhoto({ photoIndex: index, uri: item.uri })}
+                  >
+                    <Pen size={11} color="#fff" strokeWidth={2.5} />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.removePhoto}
                     onPress={() =>
@@ -248,6 +275,14 @@ export default function GenericReportDetailScreen({ route, navigation }) {
         </View>
 
         {/* Action buttons */}
+        <TouchableOpacity
+          style={[styles.actionBtn, { backgroundColor: '#374151' }]}
+          onPress={() => navigation.navigate('ReportCharts', { reportId, reportType: 'generic' })}
+        >
+          <BarChart2 size={18} color="#fff" strokeWidth={2} />
+          <Text style={styles.actionBtnText}>View Charts</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.actionBtn, { backgroundColor: meta.color || lightColors.primary }]}
           onPress={() => navigation.navigate('GenericReportPdf', { reportId })}
@@ -327,6 +362,15 @@ const styles = StyleSheet.create({
 
   photoWrap: { position: 'relative', marginRight: spacing.sm },
   photo: { width: 110, height: 110, borderRadius: radius.md },
+  annotateBtn: {
+    position: 'absolute', bottom: -8, right: -8, backgroundColor: '#2563eb',
+    borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center',
+  },
+  annotationBadge: {
+    position: 'absolute', top: 4, left: 4, backgroundColor: '#2563eb',
+    borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1,
+  },
+  annotationBadgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
   removePhoto: {
     position: 'absolute', top: -8, right: -8, backgroundColor: lightColors.error,
     borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center',
