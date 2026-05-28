@@ -4,17 +4,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import rentalsReducer from './slices/rentalsSlice';
 import reportsReducer from './slices/reportsSlice';
 import authReducer from './slices/authSlice';
+import templatesReducer from './slices/templatesSlice';
 
 const rootReducer = combineReducers({
   rentals: rentalsReducer,
   reports: reportsReducer,
   auth: authReducer,
+  templates: templatesReducer,
 });
 
 const persistConfig = {
   key: 'fieldreportx-root',
   storage: AsyncStorage,
-  whitelist: ['rentals', 'reports', 'auth'],
+  whitelist: ['rentals', 'reports', 'auth', 'templates'],
   version: 1,
   throttle: 500,
 };

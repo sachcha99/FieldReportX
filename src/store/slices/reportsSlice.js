@@ -1,6 +1,19 @@
 import { createSlice, createAsyncThunk, nanoid } from '@reduxjs/toolkit';
+import Constants from 'expo-constants';
 import { upsertReport as upsertFirestore, batchSyncReports } from '../../services/firestoreService';
 import { upsertReportLocal, markReportSynced } from '../../services/sqliteService';
+
+function getDeviceIdHash() {
+  const raw = Constants.deviceId || Constants.installationId || Constants.sessionId || 'unknown';
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    hash = (hash << 5) - hash + raw.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+}
+
+const APP_VERSION = Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0';
 
 // Template section definitions per report type
 const SECTION_TEMPLATES = {
@@ -298,6 +311,7 @@ function buildSections(type) {
     photos: [],
     audioNotes: [],
     score: null,
+    metadata: {},
   }));
 }
 
@@ -388,9 +402,12 @@ const reportsSlice = createSlice({
           updatedAt: now,
           sections,
           sensorData: null,
+          measurements: [],
           gpsRoute: [],
           signOff: { userSignature: null, supervisorSignature: null, approvedAt: null },
           pdfUri: null,
+          appVersion: APP_VERSION,
+          deviceIdHash: getDeviceIdHash(),
         };
         base.checksum = computeChecksum(base);
         return { payload: base };
@@ -437,6 +454,17 @@ const reportsSlice = createSlice({
       const section = report.sections.find((s) => s.id === sectionId);
       if (section) {
         section.photos.splice(photoIndex, 1);
+        report.updatedAt = new Date().toISOString();
+      }
+    },
+
+    savePhotoAnnotations: (state, action) => {
+      const { reportId, sectionId, photoIndex, annotations } = action.payload;
+      const report = state.byId[reportId];
+      if (!report) return;
+      const section = report.sections.find((s) => s.id === sectionId);
+      if (section?.photos[photoIndex]) {
+        section.photos[photoIndex].annotations = annotations;
         report.updatedAt = new Date().toISOString();
       }
     },
@@ -511,6 +539,26 @@ const reportsSlice = createSlice({
       report.updatedAt = new Date().toISOString();
     },
 
+    updateSectionMetadata: (state, action) => {
+      const { reportId, sectionId, metadata } = action.payload;
+      const report = state.byId[reportId];
+      if (!report) return;
+      const section = report.sections.find((s) => s.id === sectionId);
+      if (section) {
+        section.metadata = { ...(section.metadata || {}), ...metadata };
+        report.updatedAt = new Date().toISOString();
+      }
+    },
+
+    addMeasurementReading: (state, action) => {
+      const { reportId, reading } = action.payload;
+      const report = state.byId[reportId];
+      if (!report) return;
+      if (!report.measurements) report.measurements = [];
+      report.measurements.push({ ...reading, _id: nanoid() });
+      report.updatedAt = new Date().toISOString();
+    },
+
     addGpsPoint: (state, action) => {
       const { reportId, point } = action.payload;
       const report = state.byId[reportId];
@@ -581,6 +629,7 @@ export const {
   toggleChecklistItem,
   addPhotoToSection,
   removePhotoFromSection,
+  savePhotoAnnotations,
   addAudioNote,
   removeAudioNote,
   setSectionScore,
@@ -588,6 +637,8 @@ export const {
   markReportComplete,
   setReportStatus,
   saveSensorData,
+  updateSectionMetadata,
+  addMeasurementReading,
   addGpsPoint,
   clearGpsRoute,
   saveSignOff,
