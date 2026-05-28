@@ -20,11 +20,13 @@
         "NSPhotoLibraryAddOnlyUsageDescription": "FieldReportX needs permission to save inspection photos.",
         "NSLocationWhenInUseUsageDescription": "FieldReportX uses your location to geotag photos, track GPS routes, and verify report locations.",
         "NSMotionUsageDescription": "FieldReportX uses motion sensors to analyse driving smoothness and patient movement.",
-        "NSMicrophoneUsageDescription": "FieldReportX uses the microphone to record audio evidence and witness statements."
+        "NSMicrophoneUsageDescription": "FieldReportX uses the microphone to record audio evidence and witness statements.",
+        "NSSpeechRecognitionUsageDescription": "FieldReportX uses speech recognition to transcribe voice notes and field reports."
       }
     },
     "android": {
       "package": "com.fieldreportx.app",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -67,6 +69,21 @@
     ],
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "FIREBASE_API_KEY": "AIzaSyCTzB3Ck1DjjdDlVe3vsqeU0KxPW2_t5E0",
+      "FIREBASE_AUTH_DOMAIN": "field-report-x.firebaseapp.com",
+      "FIREBASE_PROJECT_ID": "field-report-x",
+      "FIREBASE_STORAGE_BUCKET": "field-report-x.firebasestorage.app",
+      "FIREBASE_MESSAGING_SENDER_ID": "487234449730",
+      "FIREBASE_APP_ID": "1:487234449730:android:2003d425fdf35dd3c518db",
+      "ADMOB_ANDROID_APP_ID": "ca-app-pub-3940256099942544~3347511713",
+      "ADMOB_IOS_APP_ID": "ca-app-pub-3940256099942544~1458002511",
+      "ADMOB_BANNER_UNIT_ID": "ca-app-pub-3940256099942544/6300978111",
+      "GROQ_API_KEY": "YOUR_GROQ_API_KEY_HERE",
+      "eas": {
+        "projectId": "555e43bf-9ed8-4f01-8d85-61d5f6dea41e"
+      }
     }
   }
 }
