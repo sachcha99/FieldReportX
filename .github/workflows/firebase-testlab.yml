@@ -56,7 +56,7 @@ jobs:
             --type robo \
             --app ./fieldreportx.apk \
             --robo-script ./firebase-robo-script.json \
-            --device model=Pixel6,version=33,locale=en,orientation=portrait \
+            --device model=oriole,version=33,locale=en,orientation=portrait \
             --timeout 5m \
             --results-bucket gs://${{ secrets.FIREBASE_PROJECT_ID }}-test-results \
             --results-dir "${{ github.run_id }}"
