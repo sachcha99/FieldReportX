@@ -1,0 +1,42 @@
+[
+  {
+    "eventType": "VIEW_TEXT_CHANGED",
+    "replacementText": "Test Driver",
+    "elementDescriptors": [
+      {
+        "resourceId": "com.fieldreportx.app:id/input_display_name"
+      }
+    ]
+  },
+  {
+    "eventType": "VIEW_CLICKED",
+    "elementDescriptors": [
+      {
+        "text": "Continue as Guest",
+        "className": "android.widget.Button"
+      }
+    ]
+  },
+  {
+    "eventType": "VIEW_CLICKED",
+    "elementDescriptors": [
+      {
+        "text": "New Report",
+        "className": "android.widget.Button"
+      }
+    ]
+  },
+  {
+    "eventType": "VIEW_CLICKED",
+    "elementDescriptors": [
+      {
+        "text": "Driving Assessment",
+        "className": "android.view.ViewGroup"
+      }
+    ]
+  },
+  {
+    "eventType": "WAIT",
+    "delayTime": 2000
+  }
+]
