@@ -66,12 +66,11 @@ describe('authSlice — unit tests', () => {
 
   // ── loginAsGuest ─────────────────────────────────────────────────────────
   describe('loginAsGuest', () => {
-    it('sets an anonymous user when Firebase returns a user', async () => {
-      authService.signInAnon.mockResolvedValueOnce({ uid: 'anon-123' });
+    it('uses a stable local guest uid (never the Firebase anonymous uid)', async () => {
       const store = makeStore();
       await store.dispatch(loginAsGuest('Jane'));
       const user = selectCurrentUser(store.getState());
-      expect(user.uid).toBe('anon-123');
+      expect(user.uid).toMatch(/^guest_/);
       expect(user.isAnonymous).toBe(true);
       expect(user.displayName).toBe('Jane');
       expect(selectIsAuthenticated(store.getState())).toBe(true);
